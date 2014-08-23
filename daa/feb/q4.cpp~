@@ -1,0 +1,108 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
+inline void fastread(int *a)
+{
+ register char c=0;
+ while (c<33) c=getchar_unlocked();
+ *a=0;
+ while (c>33)
+ {
+    *a=*a*10+c-'0';
+     c=getchar_unlocked();
+ }
+}
+
+
+int main()
+{
+	int test,n,m,k,e,f,d_m=-1,m_d1=-1,b_m=-1,b_m1=-1,temp,temp1,temp2;
+	long ans=0;
+	fastread(&test);
+	while(test>0)
+	{
+		ans=0;
+		fastread(&n);
+		fastread(&m);
+		fastread(&k);
+		int a[n],b[n][m],c[n][m],d_max[n],b_max[n],hash[n];
+		for(int i=0;i<n;i++)
+		{
+			fastread(&a[i]);
+			hash[i]=0;
+			d_max[i]=0;
+		}
+		for(e=0;e<n;e++)
+		{
+			
+			for(f=0;f<m;f++)
+			{
+				fastread(&b[e][f]);
+				
+			}
+			
+		}
+		for(e=0;e<n;e++)
+		{
+			
+			for(f=0;f<m;f++)
+			{
+				fastread(&c[e][f]);
+				if(d_max[e]<(b[e][f]-c[e][f]))
+				d_max[e]=(b[e][f]-c[e][f]);
+			}
+			
+		}
+		
+		vector<pair<int,int> > chk;
+		
+		for(e=0;e<n;e++)
+		{
+			chk.push_back(make_pair(d_max[e],e));
+		}
+		
+		sort(chk.begin(),chk.end());
+		
+		if(k<=n)
+		{
+			e=n-1;
+			
+			while(k>0)
+			{
+				ans=ans+chk[e].first;
+				e--;
+				k--;
+				//cout<<"1: "<<res<<endl;
+			}
+			while(e>=0)
+			{
+				temp=chk[i].second;
+				
+				temp2=b[temp][a[temp]-1];
+				ans=ans+temp2;
+				e--;
+				//cout<<"2: "<<res<<endl;
+			}
+		}
+		else
+		{
+			for(e=n-1;e>=0;e--)
+			{
+				ans=ans+chk[e].first;
+			}
+		}
+		
+		cout<<ans<<endl;
+		
+		test--;
+	}
+	return 0;
+}
+			
+			
+		
+		
+	
+	
+	

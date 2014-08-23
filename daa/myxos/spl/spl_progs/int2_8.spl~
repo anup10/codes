@@ -1,0 +1,184 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2*(SP/512)]*512 + (SP%512));
+
+alias syscallno S1;
+syscallno = [physicalsp -1];
+
+alias arg1 S2;
+arg1 = [physicalsp - 3];
+
+alias counter_u S5;
+counter_u=0;
+
+alias currentpid S7;
+currentpid = (PTBR - 1024)/8;
+
+alias currentpcb S8;
+currentpcb = READY_LIST + (currentpid *32);
+
+
+
+if(syscallno == 2) then
+	
+	alias counter S3;
+	counter=0;
+	
+									//checking FAT entries
+	while([FAT + (counter *8)]!= arg1 && counter<64) do
+		counter = counter +1;
+	endwhile;
+
+									
+	if(counter>=64) then
+		[physicalsp-2]=-1;
+		ireturn;
+	
+	else
+		alias counter1 S4;
+		counter1 =0;
+		
+		while([FILE_TABLE + (counter1*2)] != counter && counter1<64) do
+			counter1=counter1 +1;
+		endwhile;
+		
+		if(counter1>=64) then
+			while([FILE_TABLE + (counter_u *2)] != -1 && counter_u<64) do
+				counter_u=counter_u +1;
+			endwhile;
+			if(counter_u>=64) then 
+				[physicalsp-2]=-1;
+				ireturn;
+			else
+				
+				counter1=counter_u;
+			endif;
+		endif;
+			
+			counter_u=0;
+			
+			while([currentpcb + (counter_u *2) + 15]!= -1 && counter_u<8) do
+				counter_u=counter_u +1;
+			endwhile;
+			
+			if(counter_u>=8) then			
+				[physicalsp-2]=-1;
+				print "call to";
+				ireturn;
+			else
+								
+				[currentpcb + (counter_u *2) +15]= counter1;
+				
+				
+
+				[currentpcb +  (counter_u *2) +16]=0;
+				
+
+				[FILE_TABLE + (counter1 *2)]=counter;
+				
+				
+
+				[FILE_TABLE + (counter1 *2) +1]=[FILE_TABLE +(counter1*2)+1] +1;
+				
+				[physicalsp-2]=counter_u;
+				print "break";
+				store(5,19);
+				store(6,20);
+				ireturn;
+			endif;
+		
+	endif;
+endif;
+
+
+
+
+
+if(syscallno==3) then
+	if(arg1<0 || arg1>=8) then
+		[physicalsp-2]=-1;
+		ireturn;
+	else
+		alias fat_index S3;
+		alias table_index S4;
+		table_index=[currentpcb + (arg1*2) +15];
+		
+		if(table_index==-1) then
+			[physicalsp-2]=-1;
+			ireturn;
+		endif;
+		fat_index=[FILE_TABLE + (table_index*2)];
+												
+		
+		if(fat_index==-1) then								//invalid fat index
+			[physicalsp-2]=-1;
+			ireturn;
+												//valid fat index
+		else
+			[FILE_TABLE + (table_index *2) +1]=[FILE_TABLE + (table_index*2) +1]-1;
+												//open instance is 0
+			if([FILE_TABLE + (table_index *2) +1]==0) then
+				[FILE_TABLE + (table_index *2)]=-1;
+				[currentpcb + (arg1 *2) +15]=-1;
+				[physicalsp -2]=0;
+				ireturn;
+												//open instance is not 0
+			else
+				[physicalsp-2]=0;
+				ireturn;
+			endif;
+		endif;
+	endif;
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+

@@ -1,0 +1,66 @@
+alias currentpid S0;
+currentpid = (PTBR-1024)/8;
+
+alias currentpcb S1;
+currentpcb = (READY_LIST + 32*currentpid);
+
+[currentpcb + 1]=1;
+[currentpcb + 2]=BP;
+[currentpcb + 3]=SP-1;
+[currentpcb + 5]=PTBR;
+[currentpcb + 6]=PTLR;
+
+alias physicalip S2;
+physicalip=([PTBR + 2*(SP/512)]*512 +(SP%512));
+[currentpcb + 4]=[physicalip];
+
+[currentpcb + 7]=R0;
+[currentpcb + 8]=R1;
+[currentpcb + 9]=R2;
+[currentpcb + 10]=R3;
+[currentpcb + 11]=R4;
+[currentpcb + 12]=R5;
+[currentpcb + 13]=R6;
+[currentpcb + 14]=R7;
+
+				//finding new pcb
+alias counter S3;
+counter=currentpid;
+if(counter==31) then
+	counter=0;
+else
+	counter=counter+1;
+endif;
+while([READY_LIST + 32*counter +1]!=1) do
+	if(counter==31) then
+		counter=0;
+	else
+		counter=counter+1;
+	endif;
+endwhile;
+
+				//using new pcb
+alias newpcb S4;
+newpcb= (READY_LIST+32*counter);
+				//fetching the values in registers
+BP=[newpcb + 2];
+SP=[newpcb + 3];
+PTBR=[newpcb + 5];
+PTLR=[newpcb + 6];
+R0=[newpcb + 7];
+R1=[newpcb + 8];
+R2=[newpcb + 9];
+R3=[newpcb + 10];
+R4=[newpcb + 11];
+R5=[newpcb + 12];
+R6=[newpcb + 13];
+R7=[newpcb + 14];
+SP=SP+1;
+
+alias newphysicalsp S5;
+newphysicalsp=([PTBR + 2*(SP/512)]*512 +(SP%512));
+[newphysicalsp]=[newpcb + 4];
+[newpcb + 1]=2;
+
+ireturn;
+

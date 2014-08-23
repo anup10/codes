@@ -1,0 +1,19 @@
+integer main()
+{
+	integer childpid;
+	integer retval,wait;
+	
+	childpid = Fork();
+	
+	
+	if(childpid == -2) then
+		
+		retval = Exec("exe.xsm");
+	else
+		
+		while(childpid != -1) do
+			retval=Exec("a.xsm");
+		endwhile;
+	endif;
+	return 0;
+}

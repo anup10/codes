@@ -1,0 +1,166 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2* (SP/512)]*512 + (SP%512));
+
+alias syscallno S1;
+syscallno = [physicalsp-1];
+
+alias arg1 S3;
+arg1= [physicalsp -3];
+
+alias counter S4;
+	counter=0;
+
+if (syscallno==1) then
+	
+
+	counter=24;							//checking disk for free slot
+	while([DISK_LIST+counter]!=0 && counter<448) do
+		counter =counter +1;
+	endwhile;
+	if(counter>=448) then
+		[physicalsp-2]=-1;
+		ireturn;
+	
+	else
+		alias counter1 S5;
+		counter1=0;
+
+								//checking if file is present in disk
+		while([FAT+(counter1*8)]!=arg1 && counter1<64) do
+			counter1 = counter1+1;
+		endwhile;
+		if(counter1<64) then
+			[physicalsp-2]=0;
+			ireturn;
+		else
+			counter1=0;
+								//finding a free slot in fat
+			while([FAT+(counter1*8 +2)]!=-1 && counter1<64) do
+				counter1=counter1+1;
+			endwhile;
+			if(counter1>=64) then
+				[physicalsp-2]=-1;
+				ireturn;
+								//setting up the entry in FAT			
+			else
+				[FAT+(counter1*8)]=arg1;
+				[FAT+(counter1*8 +1)]=0;
+				[FAT+(counter1*8 +2)]=counter;
+				load(1,counter);
+				counter1=0;
+								//initialising the basic block of file created
+				while(counter1<256) do
+					[SCRATCHPAD+counter1]=-1;
+					counter1=counter1+1;
+				endwhile;
+				store(1,counter);
+				[DISK_LIST+counter]=1;
+				
+				store(5,19);
+				store(6,20);
+				[physicalsp-2]=0;
+				ireturn;
+			endif;
+		endif;
+	endif;
+endif;
+
+
+counter=0;
+
+if(syscallno==4) then
+	
+	alias counter_u S2;
+	counter_u=0;
+	alias counter_1 S7;
+	counter_1=0;
+	alias test S8;
+	
+								//checking if the file exists in fat
+	while(counter<64 && [FAT+counter*8]!= arg1 ) do
+		counter =counter +1;
+	endwhile;
+
+	if(counter>=64) then
+		[physicalsp-2]=-1;
+		ireturn;
+	
+	else
+		while(counter_u<64 && [FILE_TABLE  + counter_u*2]!=counter ) do
+			counter_u=counter_u+1;
+		endwhile;
+		if([FILE_TABLE  + counter_u*2]==counter && [FILE_TABLE + counter_u*2 +1]!=0 ) then 
+			[physicalsp-2]=-1;
+			ireturn;
+
+		else	
+			counter_u=0;
+			load(1,[FAT+(counter*8 + 2)]);
+			while(counter_u<256 && [SCRATCHPAD+counter_u]!=-1) do
+					test=[SCRATCHPAD+counter_u];
+				
+					load(1,test);
+					counter_1=0;
+					while(counter_1<512) do
+						[SCRATCHPAD+counter_1]="";
+						counter_1=counter_1+1;
+					endwhile;
+					store(1,test);
+					load(1,[FAT +(counter*8 +2)]);
+				
+				counter_u=counter_u+1;
+			endwhile;
+			counter_u=0;
+				while(counter_u<256 ) do
+					[512+counter_u]="";
+					counter_u=counter_u+1;
+				endwhile;
+
+			store(1,[FAT+(counter*8+2)]);
+			[DISK_LIST+[FAT+counter*8+2]]=0;
+			[FAT+(counter*8)]=-1;
+			[FAT+(counter*8+2)]=-1;
+			[FAT+(counter*8+1)]=0;
+			store(5,19);
+			store(6,20);
+			[physicalsp-2]=0;
+			ireturn;
+		endif;
+	endif;
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

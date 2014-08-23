@@ -1,0 +1,15 @@
+#include<iostream>
+
+using namespace std;
+
+int main()
+{
+	int *an;
+	an=new int [10];
+	for(int i=0;i<10;i++)
+	{
+		cin>>*(an+i);
+	}
+	for(int i=0;i<10;i++)
+	cout<<*(an+i);
+	}

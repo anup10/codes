@@ -1,0 +1,41 @@
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+int main()
+{
+	char inp[27],inp1[30];
+	cout<<"enter ur encryption:"<<endl;
+	
+		cin>>inp;
+	
+	cout<<"enter the text:"<<endl;
+	
+	
+		cin>>inp1;
+	
+	int k=0,l,m;
+	while( inp1[k]!= '\0')
+	{
+		l=(inp1[k]%1000);
+		if (l>64 && l <91) 
+		{
+			m=l-65;
+			cout<<inp[m]<<'\t';
+		
+		}
+		else
+		{
+			m=l-97;
+			cout<<inp[m]<<'\t';
+		}
+		k++;
+	}
+	return 0;
+}
+ 
+
+
+
+	

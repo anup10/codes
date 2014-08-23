@@ -1,0 +1,42 @@
+integer main()
+{
+	string inp,arg,inp1;
+	integer pid,ret,ret1;
+	integer i;
+	i=1;
+	while (i==1) do
+		
+		print("enter command");
+		read(inp);
+		pid=Fork();
+		if(inp=="quit") then
+			break;
+		endif;	
+		if(pid==-2) then
+			if(inp=="create") then
+				print("enter the filename:");
+				read(arg);
+				ret=Create(arg);
+				ret=Open(arg);
+				print("enter a word ");
+				print("to write into");
+				print("file or");
+				print("^ to end");
+				read(inp1);
+			while(inp1!=" ^ ") do
+				ret1=Write(ret,inp1);
+				print("give i/p");
+				read(inp1);
+				if(inp1=="^") then
+					break;
+				endif;
+			endwhile;
+			
+			endif;
+			
+		endif;
+		
+		pid=Wait(pid);
+	endwhile;
+	return 0;
+}

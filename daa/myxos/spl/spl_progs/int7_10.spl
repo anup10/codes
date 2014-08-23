@@ -1,0 +1,130 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2* (SP/512)]*512 + (SP%512));
+
+
+alias syscallno S1;
+syscallno = [physicalsp-1];
+
+alias arg S2;
+arg=[physicalsp-3];
+
+alias counter S3;
+counter=0;
+
+alias currentpid S4;
+currentpid = (PTBR - 1024)/8;
+
+alias currentpcb S5;
+currentpcb = READY_LIST + (currentpid *32);
+
+if(syscallno == 10) then
+	while(counter<32 && [READY_LIST + (counter*32) +1]!=1) do
+		counter = counter+1;
+	endwhile;
+
+	if(counter>=32) then
+		halt;
+	endif;
+										//closing all instances of open files
+	counter=0;
+		while(counter<8) do
+			if([currentpcb + (counter*2 )+15]!=-1) then
+			      [FILE_TABLE + ([currentpcb + (counter*2)+15]*2) + 1]=[FILE_TABLE + ([currentpcb + (counter*2)+15]*2) + 1]-1;
+				if([FILE_TABLE + ([currentpcb + (counter*2)+15]*2) + 1]==0) then
+					[FILE_TABLE + ([currentpcb + (counter*2)+15]*2) ]=-1;
+				endif;
+				[currentpcb + (counter*2 )+15]=-1;
+				counter=counter+1;
+			else
+				counter=counter+1;
+			endif;
+		endwhile;
+
+	[currentpcb +1]=0;
+	
+										//setting the pages unused
+
+	counter=0;
+	while(counter<4) do
+		if([PTBR+(counter*2) +1]=="01" || [PTBR+(counter*2) +1]=="11") then
+			[MEM_LIST+[PTBR+(counter*2) ]]=[MEM_LIST+[PTBR+(counter*2) ]]-1;
+		endif;
+		if([PTBR+(counter*2) +1]=="00" || [PTBR+(counter*2) +1]=="10" && ([PTBR+(counter*2)])>=448 && [PTBR+(counter*2)]<=511) then
+			[DISK_LIST + [PTBR+(counter*2)]]=[DISK_LIST + [PTBR+(counter*2)]]-1;
+		endif;
+		
+		counter=counter+1;
+	endwhile;
+	
+	store(5,19);
+	store(6,20);								//updating disk free list
+
+										//searching ready state
+	counter=0;
+	while(counter<32 && [READY_LIST + (counter*32)]!=1) do
+		counter=counter+1;
+	endwhile;
+
+	alias newpcb S6;
+	newpcb= (READY_LIST+32*counter);
+										//fetching the values in registers
+	BP=[newpcb + 2];
+	SP=[newpcb + 3];
+	PTBR=[newpcb + 5];
+	PTLR=[newpcb + 6];
+	R0=[newpcb + 7];
+	R1=[newpcb + 8];
+	R2=[newpcb + 9];
+	R3=[newpcb + 10];
+	R4=[newpcb + 11];
+	R5=[newpcb + 12];
+	R6=[newpcb + 13];
+	R7=[newpcb + 14];
+	SP=SP+1;
+	
+	alias newphysicalsp S5;
+	newphysicalsp=([PTBR + 2*(SP/512)]*512 +(SP%512));
+	[newphysicalsp]=[newpcb + 4];
+	[newpcb + 1]=2;
+
+	ireturn;
+
+
+
+
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+

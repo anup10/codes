@@ -1,0 +1,292 @@
+Grammar
+
+    0 $accept: slist $end
+
+    1 slist: slist stmnt END
+    2      | slist stmnt
+    3      | /* empty */
+
+    4 stmnt: VAR '=' expr ';'
+    5      | reads '(' VAR ')' ';'
+    6      | writes '(' expr ')' ';'
+
+    7 expr: INT
+    8     | VAR
+    9     | expr '+' expr
+   10     | expr '*' expr
+   11     | '(' expr ')'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 5 6 11
+')' (41) 5 6 11
+'*' (42) 10
+'+' (43) 9
+';' (59) 4 5 6
+'=' (61) 4
+error (256)
+INT (258) 7
+VAR (259) 4 5 8
+reads (260) 5
+writes (261) 6
+END (262) 1
+
+
+Nonterminals, with rules where they appear
+
+$accept (14)
+    on left: 0
+slist (15)
+    on left: 1 2 3, on right: 0 1 2
+stmnt (16)
+    on left: 4 5 6, on right: 1 2
+expr (17)
+    on left: 7 8 9 10 11, on right: 4 6 9 10 11
+
+
+state 0
+
+    0 $accept: . slist $end
+
+    $default  reduce using rule 3 (slist)
+
+    slist  go to state 1
+
+
+state 1
+
+    0 $accept: slist . $end
+    1 slist: slist . stmnt END
+    2      | slist . stmnt
+
+    $end    shift, and go to state 2
+    VAR     shift, and go to state 3
+    reads   shift, and go to state 4
+    writes  shift, and go to state 5
+
+    stmnt  go to state 6
+
+
+state 2
+
+    0 $accept: slist $end .
+
+    $default  accept
+
+
+state 3
+
+    4 stmnt: VAR . '=' expr ';'
+
+    '='  shift, and go to state 7
+
+
+state 4
+
+    5 stmnt: reads . '(' VAR ')' ';'
+
+    '('  shift, and go to state 8
+
+
+state 5
+
+    6 stmnt: writes . '(' expr ')' ';'
+
+    '('  shift, and go to state 9
+
+
+state 6
+
+    1 slist: slist stmnt . END
+    2      | slist stmnt .
+
+    END  shift, and go to state 10
+
+    $default  reduce using rule 2 (slist)
+
+
+state 7
+
+    4 stmnt: VAR '=' . expr ';'
+
+    INT  shift, and go to state 11
+    VAR  shift, and go to state 12
+    '('  shift, and go to state 13
+
+    expr  go to state 14
+
+
+state 8
+
+    5 stmnt: reads '(' . VAR ')' ';'
+
+    VAR  shift, and go to state 15
+
+
+state 9
+
+    6 stmnt: writes '(' . expr ')' ';'
+
+    INT  shift, and go to state 11
+    VAR  shift, and go to state 12
+    '('  shift, and go to state 13
+
+    expr  go to state 16
+
+
+state 10
+
+    1 slist: slist stmnt END .
+
+    $default  reduce using rule 1 (slist)
+
+
+state 11
+
+    7 expr: INT .
+
+    $default  reduce using rule 7 (expr)
+
+
+state 12
+
+    8 expr: VAR .
+
+    $default  reduce using rule 8 (expr)
+
+
+state 13
+
+   11 expr: '(' . expr ')'
+
+    INT  shift, and go to state 11
+    VAR  shift, and go to state 12
+    '('  shift, and go to state 13
+
+    expr  go to state 17
+
+
+state 14
+
+    4 stmnt: VAR '=' expr . ';'
+    9 expr: expr . '+' expr
+   10     | expr . '*' expr
+
+    '+'  shift, and go to state 18
+    '*'  shift, and go to state 19
+    ';'  shift, and go to state 20
+
+
+state 15
+
+    5 stmnt: reads '(' VAR . ')' ';'
+
+    ')'  shift, and go to state 21
+
+
+state 16
+
+    6 stmnt: writes '(' expr . ')' ';'
+    9 expr: expr . '+' expr
+   10     | expr . '*' expr
+
+    '+'  shift, and go to state 18
+    '*'  shift, and go to state 19
+    ')'  shift, and go to state 22
+
+
+state 17
+
+    9 expr: expr . '+' expr
+   10     | expr . '*' expr
+   11     | '(' expr . ')'
+
+    '+'  shift, and go to state 18
+    '*'  shift, and go to state 19
+    ')'  shift, and go to state 23
+
+
+state 18
+
+    9 expr: expr '+' . expr
+
+    INT  shift, and go to state 11
+    VAR  shift, and go to state 12
+    '('  shift, and go to state 13
+
+    expr  go to state 24
+
+
+state 19
+
+   10 expr: expr '*' . expr
+
+    INT  shift, and go to state 11
+    VAR  shift, and go to state 12
+    '('  shift, and go to state 13
+
+    expr  go to state 25
+
+
+state 20
+
+    4 stmnt: VAR '=' expr ';' .
+
+    $default  reduce using rule 4 (stmnt)
+
+
+state 21
+
+    5 stmnt: reads '(' VAR ')' . ';'
+
+    ';'  shift, and go to state 26
+
+
+state 22
+
+    6 stmnt: writes '(' expr ')' . ';'
+
+    ';'  shift, and go to state 27
+
+
+state 23
+
+   11 expr: '(' expr ')' .
+
+    $default  reduce using rule 11 (expr)
+
+
+state 24
+
+    9 expr: expr . '+' expr
+    9     | expr '+' expr .
+   10     | expr . '*' expr
+
+    '*'  shift, and go to state 19
+
+    $default  reduce using rule 9 (expr)
+
+
+state 25
+
+    9 expr: expr . '+' expr
+   10     | expr . '*' expr
+   10     | expr '*' expr .
+
+    $default  reduce using rule 10 (expr)
+
+
+state 26
+
+    5 stmnt: reads '(' VAR ')' ';' .
+
+    $default  reduce using rule 5 (stmnt)
+
+
+state 27
+
+    6 stmnt: writes '(' expr ')' ';' .
+
+    $default  reduce using rule 6 (stmnt)

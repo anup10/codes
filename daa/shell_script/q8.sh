@@ -1,0 +1,15 @@
+#!/bin/sh
+
+x=$(ls -a $1 | grep '^\.')
+echo $x
+y=1
+mkdir $2
+for line in $x
+do
+	y=`expr $y + 1`
+	if [ $y -gt 3 ]
+	then
+	mv $1/$line $2
+	fi
+done
+

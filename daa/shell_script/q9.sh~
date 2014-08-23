@@ -1,0 +1,10 @@
+#!/bin/sh
+
+x=$(ls -l | grep '^d' )
+for line in $x
+do
+	echo $line
+done
+
+
+

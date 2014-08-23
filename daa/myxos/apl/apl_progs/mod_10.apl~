@@ -1,0 +1,36 @@
+integer main()
+{
+	integer status0;
+	string str;
+	integer wait,exec,create,n,num1,write,close;
+	print("Enter n");
+	read(n);
+	create=Create("readNum.dat");
+	
+	//print(create);
+	while(n>0) do
+		create=Open("readNum.dat");
+		status0=Fork();
+		if(status0!=-2) then
+			wait=Wait(status0);	
+		endif;
+		if(status0==-2) then
+			print("Enter number");
+			read(num1);
+			write=Write(create,num1);
+			print(create);
+			//print("child");			
+			exec=Exec("mul.xsm");
+			if(exec==-1) then
+				print("INVALID NAME");
+				n=n+1;
+				Exit();
+			endif;
+		endif;
+		//print("parent");
+		close=Close(create);
+		print(close);
+		n=n-1;
+	endwhile;
+	return 0;
+}		

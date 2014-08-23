@@ -1,0 +1,131 @@
+				//exhndler loaded
+load(7,1);
+load(8,2);
+				//int 1 loaded
+load(11,5);
+load(12,6);
+				//int 2 loaded
+load(13,7);
+load(14,8);
+				//int 3
+load(15,9);
+load(16,10);
+				//int 4
+load(17,11);
+load(18,12);
+				//int 5
+load(19,13);
+load(20,14);
+				//int 6
+load(21,15);
+load(22,16);
+				// fat n disk free list loaded
+load(5,19);
+load(6,20);
+				//int 7 loaded
+load(23,17);
+load(24,18);
+				//timer
+load(9,3);
+load(10,4);
+				//initialising memory free list
+
+alias counter S0;
+alias counter_1 S1;				
+counter=0;
+while(counter <26) do
+	[MEM_LIST + counter]=1;
+	counter=counter+1;
+endwhile;
+
+				//setting up the mem_list
+
+
+
+counter=26;
+while(counter<64) do
+	[MEM_LIST + counter]=0;
+	counter=counter+1;
+endwhile;
+
+
+[READY_LIST+0]=0;
+				
+
+				//setting up PCB of init process
+[READY_LIST+1]=2;
+PTBR=1024;
+PTLR=4;
+				//setting the per-process table
+[PTBR+0]=21;
+[PTBR+1]="00";
+[PTBR+2]=22;
+[PTBR+3]="00";
+[PTBR+4]=23;
+[PTBR+5]="00";
+[PTBR+6]=25;
+[PTBR+7]="01";
+
+
+
+counter =0;
+while(counter<16) do
+	[READY_LIST +15+counter]=-1;
+	counter=counter+1;
+endwhile;
+				//breakpoint;
+SP=3*512;
+[28*512]=0;
+				//breakpoint;
+
+counter=0;
+
+while( counter < 128) do
+	[FILE_TABLE + counter + 0] =-1;
+	[FILE_TABLE + counter + 1] = 0;
+	counter = counter +2;
+endwhile;
+
+
+				//initialising Ready List
+ 
+counter=1;
+while(counter <32) do
+	[READY_LIST + (counter*32) + 1]=0;
+	
+	counter = counter +1;
+endwhile;
+
+counter=1;
+while(counter <32) do
+	counter_1=0;
+	while(counter_1< 16) do
+		[READY_LIST + (counter*32) + 15 + counter_1]=-1;
+		[READY_LIST + (counter*32) + 15 + counter_1+1]=0;
+		counter_1=counter_1+2;
+	endwhile;
+	counter=counter+1;
+endwhile;
+
+counter=448;
+while(counter<512) do
+	[DISK_LIST+ counter]=0;
+	counter=counter+1;
+endwhile;
+
+store(6,20);
+
+
+
+ireturn;
+
+
+
+
+
+
+
+
+
+
+

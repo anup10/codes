@@ -1,0 +1,218 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2* (SP/512)]*512 + (SP%512));
+
+
+alias syscallno S1;
+syscallno = [physicalsp-1];
+
+alias arg S2;
+arg=[physicalsp-3];
+
+alias counter S3;
+counter=0;
+
+alias currentpid S4;
+currentpid = (PTBR - 1024)/8;
+
+alias currentpcb S5;
+currentpcb = READY_LIST + (currentpid *32);
+
+alias temp S10;
+
+if(syscallno == 10) then
+	
+	print "anupk...";
+	while(counter<32) do
+		if(([READY_LIST + (counter*32) + 1]-100)==currentpid) then
+			[READY_LIST + (counter*32) + 1]=1;
+			
+		endif;
+			counter=counter+1;
+		
+	endwhile;
+
+	counter=0;
+	while(counter<32 && [READY_LIST + (counter*32) +1]!=1 ) do
+		counter = counter+1;
+	endwhile;
+
+	if(counter>=32) then
+		print counter;
+		print "abcd";
+		halt;
+	endif;
+	//print "anup";									//closing all instances of open files
+	counter=0;
+		while(counter<8) do
+			temp=[currentpcb + (counter*2 )+15];
+			if(temp!=-1) then
+			      [FILE_TABLE + (temp*2) + 1]=[FILE_TABLE + (temp*2) + 1]-1;
+				if([FILE_TABLE + (temp*2) + 1]==0) then
+					[FILE_TABLE + (temp*2) ]=-1;
+				endif;
+				[currentpcb + (counter*2 )+15]=-1;
+				counter=counter+1;
+			else
+				counter=counter+1;
+			endif;
+		endwhile;
+
+	[currentpcb +1]=0;
+	
+	store(5,19);
+	
+										//setting the pages unused
+	//print "anup";
+	counter=0;
+	while(counter<4) do
+		if([PTBR+(counter*2) ]!=-1) then
+			[MEM_LIST+[PTBR+(counter*2) ]]=0;
+		endif;
+		[PTBR+(counter*2) ]=-1;
+		[PTBR+(counter*2) +1]="00";
+		counter=counter+1;
+	endwhile;
+	//print "anup";
+	
+	//print "anup";									//searching ready state
+	counter=0;
+	while(counter<32 && [READY_LIST + (counter*32)+1]!=1) do
+		counter=counter+1;
+	endwhile;
+
+	alias newpcb S6;
+	newpcb= (READY_LIST+32*counter);
+										//fetching the values in registers
+	BP=[newpcb + 2];
+	SP=[newpcb + 3];
+	PTBR=[newpcb + 5];
+	PTLR=[newpcb + 6];
+	R0=[newpcb + 7];
+	R1=[newpcb + 8];
+	R2=[newpcb + 9];
+	R3=[newpcb + 10];
+	R4=[newpcb + 11];
+	R5=[newpcb + 12];
+	R6=[newpcb + 13];
+	R7=[newpcb + 14];
+	SP=SP+1;
+	
+	alias newphysicalsp S7;
+	newphysicalsp=([PTBR + 2*(SP/512)]*512 +(SP%512));
+	[newphysicalsp]=[newpcb + 4];
+	[newpcb + 1]=2;
+	
+	print "anupkk..";
+	ireturn;
+endif;
+
+
+
+if(syscallno == 13) then
+	print "anup6...";
+
+	if(([READY_LIST + (arg*32) +1]==2) || ([READY_LIST + (arg*32)+1]==0)) then
+		[physicalsp-2]= -1;
+		ireturn;
+	endif;
+										//current process waiting
+	[currentpcb + 1]= (100+arg);
+	
+	//print "anup";
+	//inline "JMP 4608";
+										//saving current process contents
+	[currentpcb + 2]=BP;
+	[currentpcb + 3]=SP-1;
+	[currentpcb + 5]=PTBR;
+	[currentpcb + 6]=PTLR;
+
+	alias physicalip S6;
+	physicalip=([PTBR + 2*(SP/512)]*512 +(SP%512));
+	[currentpcb + 4]=[physicalip];
+
+	[currentpcb + 7]=R0;
+	[currentpcb + 8]=R1;
+	[currentpcb + 9]=R2;
+	[currentpcb + 10]=R3;
+	[currentpcb + 11]=R4;
+	[currentpcb + 12]=R5;
+	[currentpcb + 13]=R6;
+	[currentpcb + 14]=R7;
+	
+										//finding new pcb
+	alias counter S7;
+	counter=currentpid;
+	if(counter==31) then
+		counter=0;
+	else
+		counter=counter+1;
+	endif;
+	while([READY_LIST + 32*counter +1]!=1) do
+		if(counter==31) then
+			counter=0;
+		else
+			counter=counter+1;
+		endif;
+	endwhile;
+
+									//using new pcb
+	alias newpcb S8;
+	newpcb= (READY_LIST+32*counter);
+									//fetching the values in registers
+	BP=[newpcb + 2];
+	SP=[newpcb + 3];
+	PTBR=[newpcb + 5];
+	PTLR=[newpcb + 6];
+	R0=[newpcb + 7];
+	R1=[newpcb + 8];
+	R2=[newpcb + 9];
+	R3=[newpcb + 10];
+	R4=[newpcb + 11];
+	R5=[newpcb + 12];
+	R6=[newpcb + 13];
+	R7=[newpcb + 14];
+	SP=SP+1;
+
+	alias newphysicalsp S9;
+	newphysicalsp=([PTBR + 2*(SP/512)]*512 +(SP%512));
+	[newphysicalsp]=[newpcb + 4];
+	[newpcb + 1]=2;
+	
+	
+	ireturn;
+
+
+endif;
+
+
+
+if(syscallno == 14) then
+		
+								//searching waiting processes n setting their state to ready
+	counter=0;
+	while(counter<32 ) do
+		if(([READY_LIST + (counter*32)+1]-100)==currentpid) then
+			[READY_LIST + (counter*32)+1]=1;
+		endif;
+			counter=counter+1;
+	endwhile;
+
+	[physicalsp-2]=0;						//return value success
+	ireturn;
+endif;
+
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+

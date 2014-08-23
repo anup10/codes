@@ -1,0 +1,151 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2* (SP/512)]*512 + (SP%512));
+
+alias syscallno S1;
+syscallno = [physicalsp-1];
+
+alias arg1_w S2;
+arg1_w= [physicalsp -3];
+
+alias arg2_fp S3;
+arg2_fp= [physicalsp -4];
+
+alias currentpid S4;
+currentpid = (PTBR - 1024)/8;
+
+alias currentpcb S5;
+currentpcb = READY_LIST + (currentpid *32);
+
+
+
+if(syscallno==5) then
+	if(arg2_fp<0 || arg2_fp>=8) then
+		[physicalsp-2]=-1;
+		ireturn;
+	else
+		alias index_file S6;
+		alias lseek S7;
+		lseek=[currentpcb+(arg2_fp*2+1)+15];
+		index_file=[currentpcb+(arg2_fp*2)+15];
+							//checking per-procs table entry
+		if(index_file<0 || index_file>=64) then
+			[physicalsp-2]=-1;
+			ireturn;
+		else
+			alias index_fat S8;
+			index_fat = [FILE_TABLE + (index_file *2)];
+									//checking sys wid opn entry
+			if(index_fat<0 || index_fat>=64) then
+				[physicalsp-2]=-1;
+				ireturn;
+			else
+				alias basic S9;
+				basic=[FAT+(index_fat*8+2)];
+				if(basic==-1) then
+					[physicalsp-2]=-1;
+					ireturn;
+				else
+					load(1,basic);
+					alias data_block S10;
+					data_block=[SCRATCHPAD+(lseek/512)];
+					if(data_block==-1) then
+						alias counter S11;
+						counter=24;
+						while([DISK_LIST+counter]!=0 && counter<448) do
+							counter=counter+1;
+						endwhile;
+						if(counter>=448) then
+							[physicalsp-2]=-1;
+							ireturn;
+						else
+							[DISK_LIST+counter]=1;
+							[SCRATCHPAD+(lseek/512)]=counter;
+							[FAT+(index_fat*8+1)]=[FAT+(index_fat*8+1)]+512;
+							store(1,basic);						
+							store(5,19);
+							store(6,20);
+							load(1,counter);
+							//data_block=counter;
+							[SCRATCHPAD+(lseek%512)]=arg1_w;
+							
+							store(1,counter);
+							[currentpcb+(arg2_fp*2 +1)+15]=lseek+1;
+							[physicalsp-2]=0;
+							ireturn;
+						endif;
+					else
+						store(1,basic);
+						store(5,19);
+						store(6,20);
+						load(1,data_block);
+						[SCRATCHPAD+(lseek%512)]=arg1_w;
+						store(1,data_block);
+						[currentpcb+(arg2_fp*2 +1)+15]=lseek+1;
+						[physicalsp-2]=0;
+						ireturn;
+					
+					
+					endif;	
+				endif;
+			endif;
+		endif;
+	endif;
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

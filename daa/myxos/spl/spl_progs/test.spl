@@ -1,0 +1,8 @@
+alias cp1 S1;
+cp1=4;
+print cp1;
+alias cp2 S1;
+cp2=5;
+print cp2;
+
+

@@ -1,0 +1,6 @@
+#!/bin/bash
+sudo gedit /etc/udev/rules.d/90-zte.rules
+sudo /sbin/modprobe usbserial vendor=0x19d2 product=0xffe9
+sudo wvdialconf /etc/wvdial.conf
+#sudo gedit /etc/wvdial.conf
+

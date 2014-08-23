@@ -1,0 +1,15 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+int main()
+{
+	int *num;
+	num= new int [8];
+	for(int i=0;i<8;i++)
+	cin>>num[i];
+	sort(num,num+8);
+	for(int i=0;i<8;i++)
+	cout<<num[i];
+}

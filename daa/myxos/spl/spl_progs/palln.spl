@@ -1,0 +1,25 @@
+alias temp S0;
+alias n S1;
+alias l S2;
+//alias counter S3;
+//counter=0;
+print "Enter n:";
+read n;
+l=n;
+while(l>0) do
+	temp=l%10;
+	counter=counter*10+temp;
+	l=l/10;
+	breakpoint;
+endwhile;
+
+if(counter==n)then
+	print "enetred ";
+	print "number is ";
+	print "a palandrome";
+else
+	print "entered no.";
+	print "is not a";
+	print "pallandrome";
+endif;
+

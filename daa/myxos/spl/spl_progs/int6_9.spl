@@ -1,0 +1,197 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2* (SP/512)]*512 + (SP%512));
+
+
+alias syscallno S1;
+syscallno = [physicalsp-1];
+
+alias arg S2;
+arg=[physicalsp-3];
+
+alias counter S3;
+counter=0;
+
+alias currentpid S4;
+currentpid = (PTBR - 1024)/8;
+
+alias currentpcb S5;
+currentpcb = READY_LIST + (currentpid *32);
+
+
+if( syscallno == 9) then
+	while([FAT + (counter*8)]!= arg && counter<64) do
+		counter=counter+1;
+	endwhile;
+	
+	if(counter>=64) then
+		[physicalsp-2]=-1;
+		ireturn;
+	endif;
+
+	alias basic_b S5;
+	basic_b = [FAT + (counter*8) + 2];
+									//loading basic block into scratchpad
+
+	load(1,basic_b);
+
+	alias new_cb S6;
+	new_cb = 0;
+	alias current_cb S7;
+	current_cb=0;
+									//counting the no. of code blocks for new process	
+	counter=0;
+	while([SCRATCHPAD + counter] != -1 && counter<512) do  
+		new_cb=new_cb+1;
+		counter=counter+1;
+	endwhile;
+	
+	counter=0;
+	while(counter<3) do
+		if([PTBR + (counter*2) +1] != "00" || [PTBR + (counter*2) +1] != "10") then
+			current_cb=current_cb +1;
+			counter=counter+1;
+		
+		else
+			 counter=counter+1;
+		endif;
+	endwhile;
+
+									//current > new
+	counter=2;
+	alias current_cb2 S8;
+	current_cb2=current_cb;
+	
+	if(current_cb>new_cb) then
+		while( current_cb2 > new_cb) do
+			[MEM_LIST + [PTBR + (counter*2)]]=0;	
+			[PTBR + (counter*2)]=-1;
+			[PTBR + (counter*2)+1]="00";
+			current_cb2 = current_cb2 -1;
+			counter=counter-1;
+		endwhile;
+	endif;
+
+									//new > current
+	counter=29;
+	alias count S9;
+	count=0;
+	
+	if(current_cb<new_cb) then
+		while(counter<64 && count!=(new_cb-current_cb)) do
+			if([MEM_LIST + counter]==0) then
+				count=count+1;
+				counter=counter+1;
+			else
+				counter=counter+1;
+			endif;
+		endwhile;
+		
+		if(counter>=64) then
+			[physicalsp-2]= -1;
+			ireturn;
+		endif;
+		
+		current_cb2=current_cb;
+		counter=29;
+		while(counter<64 && current_cb2!=new_cb ) do
+			if([MEM_LIST + counter]==0) then
+				[MEM_LIST+counter]=1;
+				[PTBR + (current_cb2 *2)]=counter;
+				[PTBR + (current_cb2 *2) +1]= "01";
+				current_cb2=current_cb2+1;
+				counter=counter+1;
+			else
+				counter=counter+1;
+			endif;
+		endwhile;
+	endif;
+											//copying files into memory
+		counter=0;
+		while(counter<=3 && [SCRATCHPAD+counter]!=-1) do
+			load([PTBR + (counter*2)],[SCRATCHPAD+counter]);
+			counter=counter+1;
+		endwhile;
+
+		breakpoint;								//closing all files opened by current proc
+		counter=0;
+		while(counter<8) do
+			if([currentpcb + (counter*2 )+15]!=-1) then
+			      [FILE_TABLE + ([currentpcb + (counter*2)+15]*2) + 1]=[FILE_TABLE + ([currentpcb + (counter*2)+15]*2) + 1]-1;
+				if([FILE_TABLE + ([currentpcb + (counter*2)+15]*2) + 1]==0) then
+					[FILE_TABLE + ([currentpcb + (counter*2)+15]*2) ]=-1;
+				endif;
+				[currentpcb + (counter*2 )+15]=-1;
+				counter=counter+1;
+			else
+				counter=counter+1;
+			endif;
+		endwhile;
+
+
+	SP=3*512;
+
+	[[PTBR + 2* (SP/512)]*512 + (SP%512)]=0;
+	store(1,basic_b);
+
+	ireturn;
+endif;
+			
+
+
+
+
+//system call for getpid
+
+if(syscallno==11) then
+	[physicalsp-2]=currentpid;
+	ireturn;
+endif;
+
+
+//system call for getppid
+
+if( syscallno==12) then
+	[physicalsp-2]=[currentpcb + 31];
+	ireturn;
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

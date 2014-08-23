@@ -1,0 +1,129 @@
+alias PTBR_process1 S0;
+alias PTBR_process2 S1;
+alias counter S2;
+counter=0;
+
+				//exhndler loaded
+load(7,1);
+load(8,2);
+				//int 1 loaded
+//load(11,5);
+//load(12,6);
+				//int 2 loaded
+//load(13,7);
+//load(14,8);
+				//int 3
+//load(15,9);
+//load(16,10);
+				//int 4
+//load(17,11);
+//load(18,12);
+				//int 5
+load(19,13);
+load(20,14);
+				//int 6
+load(21,15);
+load(22,16);
+				// fat n disk free list loaded
+load(5,19);
+load(6,20);
+				//int 7 loaded
+load(23,17);
+load(24,18);
+				//timer
+load(9,3);
+load(10,4);
+
+				//init code loaded
+load(25,21);
+load(26,22);
+load(27,23);
+				//setting up PCB of init process
+[READY_LIST+0]=0;
+[READY_LIST+1]=2;
+PTBR=1024;
+PTLR=4;
+[PTBR+0]=25;
+[PTBR+1]="01";
+[PTBR+2]=26;
+[PTBR+3]="01;
+[PTBR+4]=27;
+[PTBR+5]="01";
+[PTBR+6]=28;
+[PTBR+7]="01";
+//breakpoint;
+SP=3*512;
+[28*512]=0;
+//breakpoint;
+[READY_LIST +32]=1;
+load(29,25);
+PTBR_process1 = 1024 +8;
+[PTBR_process1 + 0]=29;
+[PTBR_process1 +1]="01";
+[PTBR_process1 + 2]=-1;
+[PTBR_process1 + 3]="00";
+[PTBR_process1 + 4]=-1;
+[PTBR_process1 + 5]="00";
+[PTBR_process1 + 6]=30;
+[PTBR_process1 + 7]="01";
+[READY_LIST +33]=1;
+[READY_LIST +34]=1536;
+[READY_LIST +35]=1536;
+[READY_LIST +36]=0;
+[READY_LIST +37]=PTBR_process1;
+[READY_LIST +38]=4;
+								//2nd process
+[READY_LIST +32*2]=2;
+load(31,27);
+PTBR_process2 = 1024 +16;
+[PTBR_process2 + 0]=31;
+[PTBR_process2 + 1]="01";
+[PTBR_process2 + 2]=-1;
+[PTBR_process2 + 3]="00";
+[PTBR_process2 + 4]=-1;
+[PTBR_process2 + 5]="00";
+[PTBR_process2 + 6]=32;
+[PTBR_process2 + 7]="01";
+[READY_LIST +65]=1;
+[READY_LIST +66]=1536;
+[READY_LIST +67]=1536;
+[READY_LIST +68]=0;
+[READY_LIST +69]=PTBR_process2;
+[READY_LIST +70]=4;
+
+
+counter=0;
+
+while( counter < 128) do
+	[FILE_TABLE + counter + 0] =-1;
+	[FILE_TABLE + counter + 1] = 0;
+	counter = counter +2;
+endwhile;
+
+counter=0;
+while(counter <29) do
+	[MEM_LIST + counter]=1;
+	counter=counter+1;
+endwhile;
+
+
+
+counter=3;
+while(counter <32) do
+	[READY_LIST + (counter*8) + 1]=0;
+	counter = counter +1;
+endwhile;
+
+
+ireturn;
+
+
+
+
+
+
+
+
+
+
+

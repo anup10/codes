@@ -1,0 +1,101 @@
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <cstdlib>
+
+using namespace std;
+
+static inline int cmp(const void *a, const void *b){
+   return strcmp(*(const char **)a, *(const char **)b);
+}
+
+void swap(char ip[][30],int a, int b)
+{
+	char temp[30];
+	strcpy(temp,ip[a]);
+	strcpy(ip[a],ip[b]);
+	strcpy(ip[b],temp);
+}
+
+int main()
+{
+	char ip[6000][30];
+	int i=0,len,strLen;
+	long sum=0,ans=0,value=0;
+	ifstream infile;
+	infile.open("names.txt");
+	while(!infile.eof())
+	{
+		infile>>ip[i];
+		i++;
+	}
+	for(int a=0;a<i-1;a++)
+	{
+		for(int b=a+1;b<i;b++)
+		{
+			if(strcmp(ip[a],ip[b])>0)
+			{
+				swap(ip,a,b);
+			}
+		}
+	}
+	len=i;
+	for(i=0;i<len;i++)
+	{
+		strLen=strlen(ip[i]);
+		sum=0;
+		for(int j=0;j<strLen;j++)
+		{
+			sum+=ip[i][j]-64;
+		}
+		if(!strcmp(ip[i],"COLIN"))
+		{
+			cout<<sum<<endl;
+			cout<<i<<endl;
+		}
+		ans+=(sum*(i));
+	}
+	cout<<ans<<endl;
+		
+		
+	return 0;
+}
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,448 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+
+class SpaceWarDiv1
+{
+	private:
+		
+		
+		
+		int num,num2;
+	
+	public:
+		SpaceWarDiv1()
+		{
+			
+			//setting up input for magicalGirls
+			int n1,n2;
+			
+			cout<<"Enter the no of girls:"<<endl;
+			cin>>n1;
+			num=n1;
+			
+			
+
+			//setting up input for enemy details
+			cout<<"Enter the no of enemies:"<<endl;
+			cin>>n2;
+			num2=n2;
+			
+
+			
+		}
+		
+		int getNumG()
+		{
+			return num;
+		}
+		
+		int getNumE()
+		{
+			return num2;
+		}
+		
+		int minimumFat(long long fatigue[],int girl_ind);
+		long long maxFat(long long fatigue[],int n);
+		
+		int nextMinFatigue(long long fatigue[],int girl_ind);
+		
+		long long minimalFatigue( int magicalGirlStrength[],int enemyStrength[],long long enemyCount[] );
+};
+
+
+long long SpaceWarDiv1 :: minimalFatigue( int magicalGirlStrength[],int enemyStrength[], long long enemyCount[])
+{
+	  
+	long long *fatigue;
+	fatigue=new long long [num];
+	for(int i=0;i<num;i++)
+	fatigue[i]=0;
+	int *look;
+	look = new int [num];
+	for(int i=0;i<num;i++)
+	look[i]=0;
+	int a,girl_ind,min_ind,next_ind;
+	long long count,ret,min_fat,next_min,counter=0,diff,dis_each;
+	if(enemyStrength[num2-1]>magicalGirlStrength[num-1])
+	{
+		return -1;
+	}
+	else
+	{
+		/*//making a look up matrix
+
+		for(int i=0;i<num2;i++)
+		{
+			for(int j=0;j<num;j++)
+			{
+				if(magicalGirlStrength[j]>=enemyStrength[i])
+				{
+					look[i][j]=1;
+				}
+			}
+		}
+		*/
+		
+		for(a=num2-1;a>=0;a--)
+		{
+			count=enemyCount[a];
+			cout<<"at enemy no.	"<<a<<endl;
+			for(int i=0;i<num;i++)
+			{
+				if(magicalGirlStrength[i]>=enemyStrength[a])
+				{
+						girl_ind=i;
+						break;
+				}
+			}
+			
+			cout<<"starts at	"<<girl_ind<<endl;
+			while(count>0 )
+			{
+				
+				min_ind=minimumFat(fatigue,girl_ind);
+				cout<<min_ind<<"minimum index"<<endl;
+				min_fat=fatigue[min_ind];
+				
+				cout<<min_fat<<"min fat"<<endl;
+				
+				
+				if(girl_ind != num-1)
+				{
+				
+				for(int i=girl_ind;i<num;i++)
+				{
+					if(fatigue[i]==min_fat)
+					{
+						look[i]=1;
+						counter++;
+					}
+				}
+				next_ind=nextMinFatigue(fatigue,girl_ind);
+				cout<<next_ind<<"next index"<<endl;
+				next_min=fatigue[next_ind];
+				cout<<next_min<<"next mini"<<endl;
+				
+				diff=(next_min-min_fat);
+				cout<<diff<<"diff"<<endl;
+				if(diff==0)
+				{	
+					dis_each=(count/(counter));
+					
+					if(dis_each==0)
+					{
+						cout<<"dis1"<<endl;
+						for(int i=girl_ind;i<num;i++)
+						{
+							if(look[i]==1 && count>0)
+							{
+								fatigue[i]++;
+								count--;
+								enemyCount[a]=count;
+							}
+						}
+					}
+					else
+					{
+						for(int i=girl_ind;i<num;i++)
+						{
+							if(look[i]==1 && count>0)
+							{
+								fatigue[i]=fatigue[i]+dis_each;
+								count=count-dis_each;
+								enemyCount[a]=count;
+							}
+						}
+					}
+				}
+				else
+				{	
+					if(diff>count)
+					dis_each=count/counter;
+					else
+					dis_each=(diff/(counter));
+					
+					if(dis_each==0)
+					{
+						
+						for(int i=0;i<num;i++)
+						{
+							if(look[i]==1 && count>0)
+							{
+								fatigue[i]++;
+								count--;
+								enemyCount[a]=count;
+							}
+						}
+					}
+					else
+					{
+						cout<<"dis2"<<endl;
+						for(int i=0;i<num;i++)
+						{
+							if(look[i]==1 && count>0)
+							{
+								fatigue[i]=fatigue[i]+dis_each;
+								count=count-dis_each;
+								enemyCount[a]=count;
+							}
+						}
+					}
+				}	
+				counter=0;
+				for(int i=0;i<num;i++)
+				look[i]=0;
+				}
+				
+				else
+				{
+					fatigue[min_ind]=fatigue[min_ind]+count;
+					count=0;
+					enemyCount[a]=0;
+				}
+				
+			}
+		}
+		for(int i=0;i<num;i++)
+		cout<<fatigue[i]<<endl;
+		
+		ret=maxFat(fatigue,num);
+		
+		return (ret);
+	}
+}
+
+int SpaceWarDiv1 :: nextMinFatigue(long long fatigue[],int girl_ind)
+{
+	int m1,m2,t;
+	long long min1=fatigue[girl_ind],min2,temp;
+	
+	min2=fatigue[girl_ind];
+	m1=m2=girl_ind;
+	for(int i=girl_ind;i<num;i++)
+	{
+		if(min1 != fatigue[i] && fatigue[i]>min1)
+		{
+			min2=fatigue[i];
+			m2=i;
+		}
+	}
+	for(int i=girl_ind;i<num;i++)
+	{
+		if(min1>fatigue[i] )
+		{
+			temp=min1;
+			t=m1;
+			min1=fatigue[i];
+			m1=i;
+			m2=t;
+			min2=temp;
+		}
+		if(min1<fatigue[i] && min2>fatigue[i])
+		{
+			min2=fatigue[i];
+			m2=i;
+		}
+	}
+	
+	return m2;
+}
+
+int SpaceWarDiv1 :: minimumFat(long long fatigue[],int girl_ind)
+{
+	int m;
+	long long min=fatigue[girl_ind];
+	m=girl_ind;
+	for(int i=girl_ind;i<num;i++)
+	{
+		if(min>fatigue[i])
+		{
+			m=i;
+			min=fatigue[i];
+		}
+	}
+	
+	return m;
+}
+		
+long long SpaceWarDiv1 :: maxFat(long long fatigue[],int n1)
+{
+	long long max=fatigue[0];
+	for(int i=0;i<n1;i++)
+	{
+		if(max<fatigue[i])
+		max=fatigue[i];
+	}
+	return max;
+}
+			
+		
+int partition1(int a[],long long b[],int p,int r)
+ {
+	int t;
+	long long t1;
+	int x=a[r];
+	int i=p-1;
+	for(int j=p;j<=(r-1);j++)
+	 {	
+		if(a[j]<x)
+		 {
+			i++;
+			t=a[i];
+			t1=b[i];
+			a[i]=a[j];
+			b[i]=b[j];
+			a[j]=t;
+			b[j]=t1;
+		 }
+	 }
+		t=a[i+1];
+		t1=b[i+1];
+		a[i+1]=a[r];
+		b[i+1]=b[r];
+		a[r]=t;
+		b[r]=t1;
+			
+	return i+1;
+		
+ }
+
+
+
+void quicksort1(int a[],long long b[],int p,int r)
+ {
+	if(p<r)
+	 {
+		int q=partition1(a,b,p,r);
+		quicksort1(a,b,p,q-1);
+		quicksort1(a,b,q+1,r);
+	 }
+ }		
+		
+		
+int partition(int a[],int p,int r)
+{
+	int t;
+	int x=a[r];
+	int i=p-1;
+	for(int j=p;j<=(r-1);j++)
+	 {	
+		if(a[j]<x)
+		 {
+			i++;
+			t=a[i];
+			a[i]=a[j];
+			a[j]=t;
+		 }
+	 }
+		t=a[i+1];
+		a[i+1]=a[r];
+		a[r]=t;
+			
+	return i+1;
+		
+ }
+
+
+
+void quicksort(int a[],int p,int r)
+ {
+	if(p<r)
+	 {
+		int q=partition(a,p,r);
+		quicksort(a,p,q-1);
+		quicksort(a,q+1,r);
+	 }
+ }
+	
+		
+				
+
+int main()
+{
+	SpaceWarDiv1 w1;						//instance of class
+	
+	int *magicalGirlStrength;
+	int *enemyStrength;
+	long long *enemyCount;
+	long long ret;
+	int n1,n2;
+	n1=w1.getNumG();
+	n2=w1.getNumE();
+	magicalGirlStrength = new int [n1];
+	enemyStrength = new int [n2];
+	enemyCount = new long long [n2];
+	
+								//initialising the values for girlstrength
+	cout<<"Enter the strength of each girl;"<<endl;
+	for(int i=0;i<n1;i++)
+	cin>>magicalGirlStrength[i];
+	
+								//initialising the values for enemies
+	cout<<"Give the strength followed by the count of the enemy type:"<<endl;
+	for(int i=0;i<n2;i++)
+	{
+		cin>>enemyStrength[i];
+		cin>>enemyCount[i];
+	}
+	
+	quicksort(magicalGirlStrength,0,n1-1);
+	for(int i=0;i<n1;i++)
+	cout<<magicalGirlStrength[i]<<endl;
+	
+	quicksort1(enemyStrength,enemyCount,0,n2-1);
+	for(int i=0;i<n2;i++)
+	{
+		cout<<enemyStrength[i]<<"\t";
+		cout<<enemyCount[i]<<endl;
+	}
+	
+	
+	
+	//sorting the girlsstrength and enemy
+			/*use inbuilt functions 
+			of
+			c++
+			libraries
+			*/
+	
+	
+	ret = w1.minimalFatigue( magicalGirlStrength, enemyStrength, enemyCount );
+	
+	if(ret==-1)
+	cout<<"With given girls, all enemies can't be defeated!!"<<endl;
+	else
+	cout<<"Maximum Fatigue is : 	"<<ret<<endl;
+	return 0;
+}
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

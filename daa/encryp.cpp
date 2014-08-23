@@ -1,0 +1,119 @@
+#include<iostream>
+#include<fstream>
+
+using namespace std;
+
+#define A 0;
+#define a 0;
+#define B 1;
+#define b 1;
+#define C 2;
+#define c 2;
+#define D 3;
+#define d 3;
+#define E 4;
+#define e 4;
+#define F 5;
+#define f 5;
+#define G 6;
+#define g 6;
+#define H 7;
+#define h 7;
+#define I 8;
+#define i 8;
+#define J 9;
+#define j 9;
+#define K 10;
+#define k 10;
+#define L 11;
+#define l 11;
+#define M 12;
+#define m 12;
+#define n 13;
+#define N 13;
+#define O 14;
+#define o 14;
+#define P 15;
+#define p 15;
+#define Q 16;
+#define q 16;
+#define R 17;
+#define r 17;
+#define S 18;
+#define s 18;
+#define T 19;
+#define t 19;
+#define U 20;
+#define u 20;
+#define V 21;
+#define v 21;
+#define W 22;
+#define w 22;
+#define X 23;
+#define x 23;
+#define Y 24;
+#define y 24;
+#define Z 25;
+#define z 25;
+
+
+int main()
+{
+	char inp[27],inp1[30];
+	cout<<"Entr the encryption:"<<endl;
+	for(int ip=0;ip<26;ip++)
+	{
+		cin>>inp[ip];
+	}
+	cout<<"enter your text:"<<endl;
+	int ip=0;
+	cin>>inp1[ip];
+	while(inp1[ip]!='\n')
+	{
+		ip++;
+		cin>>inp1[ip];
+		
+	}
+		
+	int jk=0;
+	while(inp1[jk]!= '\n')
+	{
+		cout<<inp[(inp1[jk])%26]<<endl;
+		jk++;
+	}
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

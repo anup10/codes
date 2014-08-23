@@ -1,0 +1,75 @@
+				//exhndler loaded
+load(7,1);
+load(8,2);
+				//int 1 loaded
+load(11,5);
+load(12,6);
+				//int 2 loaded
+load(13,7);
+load(14,8);
+				//int 3
+load(15,9);
+load(16,10);
+				//int 4
+load(17,11);
+load(18,12);
+				// fat n disk free list loaded
+load(5,19);
+load(6,20);
+				//int 7 loaded
+load(23,17);
+load(24,18);
+
+
+				//init code loaded
+load(25,21);
+load(26,22);
+load(27,23);
+				//setting up PCB of init process
+[READY_LIST+1]=2;
+[READY_LIST+0]=0;
+PTBR=1024;
+PTLR=4;
+				//setting the per-process table
+SP=3*512;
+[28*512]=0;
+
+[PTBR+0]=25;
+[PTBR+1]="01";
+[PTBR+2]=26;
+[PTBR+3]="01";
+[PTBR+4]=27;
+[PTBR+5]="01";
+[PTBR+6]=28;
+[PTBR+7]="01";
+
+alias counter S0;
+counter =0;
+while(counter<16) do
+	[READY_LIST +15+counter]=-1;
+	counter=counter+1;
+endwhile;
+				//breakpoint;
+
+				//breakpoint;
+
+counter=0;
+
+while( counter < 128) do
+	[FILE_TABLE + counter + 0] =-1;
+	[FILE_TABLE + counter + 1] = 0;
+	counter = counter +2;
+endwhile;
+
+ireturn;
+
+
+
+
+
+
+
+
+
+
+

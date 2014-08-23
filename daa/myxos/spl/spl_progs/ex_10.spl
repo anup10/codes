@@ -1,0 +1,141 @@
+					//saving the cause of exception
+alias cause S0;
+cause = EFR%10;
+print"called";
+print cause;
+					//saving the virtual page number
+alias vpageno S1;
+vpageno = (EFR/10)%100;
+					//saving the ip address of exception
+alias ip_add S2;
+ip_add = (EFR/1000);
+					//cause= illegal inst
+if(cause!=0) then
+	if(cause == 1) then
+		print "ILLGL INTS";
+	endif;
+
+					//cause = illegal m/y access 
+	if(cause == 2) then
+		print "ILgl m/y acs";
+	
+	endif;
+
+					//cause = arithmetic operations
+	if(cause == 3) then
+		print "ARITHMETIC EXCEPTION: DIV BY 0 NOT POSSIBLE";
+	
+	endif;
+
+					//cause = illegal operands
+	if(cause == 4) then
+		print "ILLEGAL OPERANDS";
+		
+	endif;
+	inline "JMP 11776";
+endif;
+					//cause = page fault
+if(cause == 0) then
+					//invalid physical address refferenced
+	if([PTBR+(vpageno*2)]==-1) then
+		print "INVALID PHY_add";
+		inline "JMP 11776";
+	endif;
+							//searching for an empty page in m/y
+	alias counter S10;
+	counter=0;
+	while([MEM_LIST + counter]!=0 && counter<64) do
+		counter=counter+1;
+	endwhile;				
+							//case when no empty slot is available
+
+	if(counter>=64) then
+		alias counter_pt S3;
+		counter_pt=1;
+				
+		while(1) do
+			if(counter_pt%7==0) then
+				counter_pt=counter_pt+2;
+			else
+				if([1024+(PTBR+counter_pt)%256]=="01" && [MEM_LIST + [1024+(PTBR+counter_pt-1)%256]]<= 1) then
+					alias counter_df S4;
+					counter_df=448;
+					while([DISK_LIST+counter_df]!=0 && counter_df<512) do
+						counter_df=counter_df+1;
+					endwhile;
+					if(counter_df>=512) then
+						print "NO SWAP";
+						inline "JMP 11776";
+					endif;
+
+					[DISK_LIST + counter_df]=1;
+
+					alias victim_pg S5;
+					victim_pg = [1024 +(PTBR+counter_pt-1)%256];
+
+					store(victim_pg,counter_df);
+
+					[1024 +(PTBR+counter_pt-1)%256]=counter_df;
+					[1024 +(PTBR+counter_pt)%256]="00";
+
+					counter=victim_pg;
+					break;
+				else
+					if([1024+(PTBR+counter_pt)%256]=="11") then
+						[1024+(PTBR+counter_pt)%256]="01";
+						counter_pt=counter_pt+2;
+					else
+						counter_pt=counter_pt+2;
+					endif;
+				endif;
+			endif;
+		endwhile;
+
+	endif;
+
+	alias phy_pg S8;
+	phy_pg = [PTBR + vpageno*2];
+
+	if(phy_pg>=21 && phy_pg<=447) then
+		load(counter,phy_pg);
+	endif;
+
+
+	if(phy_pg>447 && phy_pg<512) then
+		load(counter,phy_pg);
+		[DISK_LIST+phy_pg]=[DISK_LIST+phy_pg]-1;
+	endif;
+
+	[PTBR + vpageno*2]=counter;
+	[PTBR + vpageno*2+1]="11";
+	print counter;
+	SP=SP+1;
+
+	alias physicalsp S9;
+	physicalsp=([PTBR + 2* (SP/512)]*512 + (SP%512));
+	[physicalsp]= ip_add;
+	ireturn;
+
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

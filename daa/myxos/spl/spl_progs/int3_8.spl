@@ -1,0 +1,134 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2* (SP/512)]*512 + (SP%512));
+
+alias syscallno S1;
+syscallno = [physicalsp-1];
+
+alias arg1_new S2;
+arg1_new= [physicalsp -3];
+
+alias arg2_fp S3;
+arg2_fp= [physicalsp -4];
+
+alias currentpid S4;
+currentpid = (PTBR - 1024)/8;
+
+alias currentpcb S5;
+currentpcb = READY_LIST + (currentpid *32);
+
+if(syscallno==6) then
+	if(arg2_fp<0 || arg2_fp>=8) then
+		[physicalsp-2]=-1;
+		ireturn;
+	else
+		alias lseek S6;
+		lseek = [currentpcb + (arg2_fp*2 +1)+15];
+		alias index_file S7;
+		index_file=[currentpcb + (arg2_fp*2)+15];
+		if(index_file<0 || index_file>=64) then
+			[physicalsp-2]=-1;
+			ireturn;
+		else
+			alias index_fat S8;
+			index_fat=[FILE_TABLE+(index_file*2)];
+			if(index_fat<0 || index_fat>=64) then
+				[physicalsp-2]=-1;
+				ireturn;
+			else
+				alias size S9;
+				size=[FAT+(index_fat*8+1)];
+				if(arg1_new>=size) then
+					[physicalsp-2]=-1;
+					ireturn;
+				else
+					[currentpcb +(arg2_fp*2+1)+15]=arg1_new;
+					[physicalsp-2]=0;
+					ireturn;
+				endif;
+			endif;
+		endif;
+	endif;
+endif;
+
+
+if(syscallno == 7) then
+	if(arg2_fp<0 || arg2_fp>=8) then
+		[physicalsp-2]=-1;
+		ireturn;
+	else
+		alias index_file S6;
+		alias lseek S7;
+		index_file=[currentpcb + (arg2_fp*2)+15];
+		if(index_file<0 || index_file>=64) then
+			[physicalsp-2]=-1;
+			ireturn;
+		else
+			lseek=[currentpcb + (arg2_fp*2+1)+15];
+			alias index_fat S8;
+			index_fat=[FILE_TABLE + (index_file*2)];
+			if(index_fat<0||index_fat>=64) then
+				[physicalsp-2]=-1;
+				ireturn;
+			else
+				alias basic_block S9;
+				alias file_size S10;
+				basic_block=[FAT +(index_fat*8+2)];
+				file_size=[FAT +(index_fat*8+1)];
+				if(basic_block==-1) then
+					[physicalsp-2]=-1;
+					ireturn;
+				endif;
+				if(lseek>=file_size) then
+					[physicalsp-2]=-1;
+					ireturn;
+				else
+					load(1,basic_block);
+					alias data_block S11;
+					data_block=[SCRATCHPAD+(lseek/512)];
+					store(1,basic_block);
+					if(data_block==-1) then
+						[physicalsp-2]=-1;
+						ireturn;
+					else
+						load(1,data_block);
+						[physicalsp-3]=[SCRATCHPAD+(lseek%512)];
+						store(1,data_block);
+						[physicalsp-2]=0;
+						ireturn;
+					endif;
+				endif;
+			endif;
+		endif;
+	endif;
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

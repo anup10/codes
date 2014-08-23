@@ -1,0 +1,146 @@
+breakpoint;
+//print("Exhandler");
+alias Cause S0;          
+alias VPagenum S11;
+alias IP_addr S3;
+alias count S2;
+alias save S5;
+alias PPN S8;
+alias sysCallNo S1;
+
+sysCallNo = -1;
+
+Cause = EFR % 10;
+VPagenum = (EFR / 10) % 100;
+IP_addr = (EFR/1000);
+
+
+// breakpoint;
+if (Cause != 0) then
+	//print(Cause);
+	
+	//print(IP_addr);
+	print("Not page fault");
+	
+endif;
+
+// breakpoint;
+if (Cause == 0) then
+	//print("Page fault");
+	if([PTBR + 2 * VPagenum + 0] == -1) then
+	//	print("invalid vpagenum");
+		inline "JMP 11776";
+	endif;
+	
+	count = 57;
+	alias freePage S7;
+	freePage = -1;
+	
+	// breakpoint;
+	while(count>=57&&count < 64) do
+		if([MEM_LIST + count] == 0) then
+			freePage = count;
+			[MEM_LIST + count] = 1;
+			break;
+		endif;
+		count = count + 1;
+	endwhile;
+	
+	breakpoint;
+	if(freePage == -1) then
+			
+		count = PTBR + 2 * VPagenum;
+		
+		// breakpoint;
+
+		while(1) do
+			if(((count - 1024)/2 + 1)%4 != 0) then
+				if([MEM_LIST + [count + 0]] == 1 && [count + 1]%10 == 1 && [count + 1]/10 == 0) then
+					alias count1 S6;
+					count1 = 448;
+					save = -1;
+					
+					while(count1 < 512) do
+						if([DISK_LIST + count1] == 0) then 								
+							save = count1;
+							
+							freePage = [count + 0];
+							
+							[DISK_LIST + count1] = 1;
+							
+							//load(1, count1);
+							//alias count2 S12;
+							//count2 = 0;
+							//while(count2 < 512) do
+							//	[SCRATCHPAD + count2] = [[count] * 512 + count2];
+							//	count2 = count2 + 1;
+							//endwhile;
+							store(count1, save);
+							store(6,20);
+							
+							[count + 0] = count1;
+							[count + 1] = "00";
+							break;
+						endif;
+						count1 = count1 + 1;
+					endwhile;
+					
+					if(save == -1) then
+						
+						inline "JMP 11776";
+					endif;
+					
+					break;
+				
+				else if([count + 1]/10 == 1) then
+					[count + 1] = "01";
+					endif;
+				endif;
+			endif;
+			
+			// breakpoint;
+			if(count == 1278) then
+				count = 1024;
+			else	
+				count = count + 2;
+			endif;
+		endwhile;
+	endif;
+	
+	
+	
+	if(sysCallNo != -1) then
+		
+		inline "JMP 9924";
+	endif;
+	// breakpoint;
+	PPN = [PTBR + 2 * VPagenum + 0];
+		
+	if(PPN >= 21 && PPN < 448) then
+		load(freePage,PPN);
+		[PTBR + 2 * VPagenum + 0] = freePage;
+		[PTBR + 2 * VPagenum + 1] = "11";
+	else if (PPN >= 448 && PPN < 512) then
+			
+			load(freePage, PPN);
+			[DISK_LIST + PPN] = [DISK_LIST + PPN] - 1;
+			store(6, 20);
+			[PTBR + 2 * VPagenum + 0] = freePage;
+			[PTBR + 2 * VPagenum + 1] = "11";
+		endif;
+	endif;
+	
+		
+	
+	// breakpoint;	
+	SP = SP + 1;
+	alias physicalSP S15;
+	
+	physicalSP = ([PTBR + 2 * (SP/512)] * 512) + SP % 512;
+	//print(IP_addr);
+	[physicalSP] = IP_addr;
+	breakpoint;
+	//print("Endexhand");
+	ireturn;
+endif;			
+

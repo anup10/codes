@@ -1,0 +1,171 @@
+alias physicalsp S0;
+physicalsp = ([PTBR + 2* (SP/512)]*512 + (SP%512));
+
+
+
+alias syscallno S1;
+syscallno = [physicalsp-1];
+
+alias counter S2;
+counter=0;
+
+alias currentpid S9;
+currentpid = (PTBR - 1024)/8;
+
+alias currentpcb S10;
+currentpcb = READY_LIST + (currentpid *32);
+
+if(syscallno == 8) then
+	alias free_pcb S3;
+	free_pcb = 0;
+	while([READY_LIST + (counter*32) + 1] != 0 && counter<32) do
+		counter = counter +1;
+	endwhile;
+	if( counter>=32) then
+		[physicalsp-2] = -1 ;
+		ireturn;
+	endif;
+									//found pid
+	free_pcb = counter;
+	counter=0;
+	
+
+	[READY_LIST + (free_pcb*32)] = free_pcb;
+	
+	alias req_pg S4;
+	req_pg=0;
+									//counting the no of code pages required
+	while(counter<4) do	
+		if (([PTBR + (counter*2) +1] == "00") || ([PTBR + (counter*2) +1]=="10")) then
+			counter=counter+1;
+		else
+			req_pg = req_pg +1;
+			counter=counter+1;
+		endif;
+	endwhile;
+	
+	
+	//checking if required memory is available in mem list
+   						
+	counter =29;
+	alias counter_pg S5;
+	counter_pg=0;
+	
+	while(counter<64) do
+			if([MEM_LIST + counter]==0) then
+				counter_pg=counter_pg+1;
+			endif;
+			if(counter_pg>=req_pg) then
+				break;
+			endif;
+			counter=counter+1;
+	endwhile;
+				
+	//if sufficient space is not available
+										
+	if((counter_pg)<req_pg) then
+		[physicalsp -2]= -1;
+		ireturn;
+	endif;
+	
+
+	alias copy S6;
+	alias counter_cp S7;
+	counter_cp=0;
+	alias ptbr_new S8;
+	ptbr_new = ((free_pcb * 8)+1024); 
+	counter_pg=0;
+	counter=29;								//copying each valid page into free memory found
+	
+	while(req_pg>0) do
+		if([MEM_LIST+ counter]==0) then
+			[MEM_LIST + counter]= 1;
+			while([PTBR + (counter_pg*2)+1 ] == "00" || [PTBR + (counter_pg*2)+1 ] == "10" ) do
+			
+				[ptbr_new + (counter_pg*2)]=-1;
+				[ptbr_new + (counter_pg*2)+1]= [PTBR + (counter_pg*2)+1 ];
+				counter_pg=counter_pg+1;
+			endwhile;
+										//copying page
+										
+			counter_cp=0;
+
+			[ptbr_new + (counter_pg *2)]=counter;
+			[ptbr_new + (counter_pg *2)+1]="01";		
+			while(counter_cp<512) do
+				
+				[counter*512 + counter_cp] = [ [PTBR+ (counter_pg*2)]*512 +counter_cp];
+			
+				counter_cp=counter_cp+1;
+			endwhile;
+			//print ([ptbr_new + (counter_pg *2)]);
+			req_pg=req_pg-1;
+			counter_pg=counter_pg+1;
+			counter=counter+1;
+		else
+			counter=counter+1;
+		endif;
+	endwhile;		
+		
+										//setting the value of PTBR OF child
+	[READY_LIST + (free_pcb*32) + 5]= ptbr_new;
+										//setting the value of IP of child
+	[READY_LIST + (free_pcb*32) + 4]=[physicalsp];
+										//setting the value of SP of child
+	[READY_LIST + (free_pcb*32) + 3]= SP-1;
+										//setting the value of parent pid of child
+	[READY_LIST + (free_pcb*32) + 31]=currentpid;
+										//giving values to the remaining registers
+	[READY_LIST + (free_pcb*32) + 2]=BP;
+	[READY_LIST + (free_pcb*32) + 6]=PTLR;
+	[READY_LIST + (free_pcb*32) + 7]=R0;
+	[READY_LIST + (free_pcb*32) + 8]=R1;
+	[READY_LIST + (free_pcb*32) + 9]=R2;
+	[READY_LIST + (free_pcb*32) + 10]=R3;
+	[READY_LIST + (free_pcb*32) + 11]=R4;
+	[READY_LIST + (free_pcb*32) + 12]=R5;
+	[READY_LIST + (free_pcb*32) + 13]=R6;
+	[READY_LIST + (free_pcb*32) + 14]=R7;
+	[READY_LIST + (free_pcb*32) + 1]=1;
+	
+
+	counter=0;
+	while(counter<8) do
+		[READY_LIST + (free_pcb*32) +15 +(counter*2)]=[currentpcb + (counter*2)+15];
+		[READY_LIST + (free_pcb*32) +15 +(counter*2)+1]=[currentpcb + (counter*2)+16];
+		if([READY_LIST+(free_pcb*32) +15 +(counter*2)] != -1) then
+			[FILE_TABLE + [currentpcb + (counter*2) +15]*2 +1]=[FILE_TABLE + [currentpcb + (counter*2) +15]*2 +1]+1;
+		endif;
+		counter=counter+1;
+	endwhile;
+
+										//return value at sp-2
+	[physicalsp-2]=free_pcb;
+
+	alias new_physp S11;
+	new_physp=([ptbr_new + 2* ((SP-1)/512)]*512 + ((SP-1)%512));
+	
+	[new_physp-1]=-2;
+	ireturn;
+endif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
